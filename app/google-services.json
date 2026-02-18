@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "326858809228",
+    "project_id": "cs330-pz1",
+    "storage_bucket": "cs330-pz1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326858809228:android:d743be5e3bc4a06a3780a9",
+        "android_client_info": {
+          "package_name": "com.example.cs330_pz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAErRBa4e01_PTH-YzT823nSUK1sh_Ihh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
