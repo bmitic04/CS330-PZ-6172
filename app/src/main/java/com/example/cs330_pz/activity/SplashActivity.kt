@@ -1,11 +1,9 @@
-package com.example.cs330_pz
+package com.example.cs330_pz.activity
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.cs330_pz.databinding.ActivitySpashBinding
 
 class SplashActivity : AppCompatActivity() {
