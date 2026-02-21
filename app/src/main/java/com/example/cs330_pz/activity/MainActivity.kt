@@ -33,11 +33,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -205,6 +207,13 @@ private fun MainScreen(
         NavItem(R.drawable.btn_4, "Profile")
     )
     var selectedNavIndex by remember { mutableStateOf(0) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val filteredTopMovies = remember(topMovies, searchQuery) {
+        filterMovies(topMovies, searchQuery)
+    }
+    val filteredUpcomingMovies = remember(upcomingMovies, searchQuery) {
+        filterMovies(upcomingMovies, searchQuery)
+    }
 
     Box(
         modifier = Modifier
@@ -218,11 +227,19 @@ private fun MainScreen(
                 .padding(bottom = 100.dp)
         ) {
             MainHeader()
-            SearchBar()
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it }
+            )
             BannerSection(banners = banners, loading = bannerLoading)
 
             SectionTitle(title = "Top Movies", action = stringResource(R.string.see_all), titleColor = yellow, actionColor = white)
-            MovieList(items = topMovies, loading = topMoviesLoading, onMovieClick = onMovieClick)
+            MovieList(
+                items = filteredTopMovies,
+                loading = topMoviesLoading,
+                emptyText = if (searchQuery.isBlank()) "No movies available" else "No movies found",
+                onMovieClick = onMovieClick
+            )
 
             SectionTitle(
                 title = stringResource(R.string.upcoming_movies),
@@ -230,7 +247,12 @@ private fun MainScreen(
                 titleColor = yellow,
                 actionColor = white
             )
-            MovieList(items = upcomingMovies, loading = upcomingMoviesLoading, onMovieClick = onMovieClick)
+            MovieList(
+                items = filteredUpcomingMovies,
+                loading = upcomingMoviesLoading,
+                emptyText = if (searchQuery.isBlank()) "No movies available" else "No movies found",
+                onMovieClick = onMovieClick
+            )
         }
 
         Column(
@@ -289,10 +311,12 @@ private fun MainHeader() {
 }
 
 @Composable
-private fun SearchBar() {
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
     val white = colorResource(R.color.white)
     val black2 = colorResource(R.color.black2)
-    var value by remember { mutableStateOf("Search Movies") }
 
     Row(
         modifier = Modifier
@@ -310,14 +334,25 @@ private fun SearchBar() {
         )
         Spacer(modifier = Modifier.width(8.dp))
         androidx.compose.foundation.text.BasicTextField(
-            value = value,
-            onValueChange = { value = it },
+            value = query,
+            onValueChange = onQueryChange,
             singleLine = true,
+            cursorBrush = SolidColor(white),
             textStyle = androidx.compose.ui.text.TextStyle(
                 color = white,
                 fontSize = 16.sp
             ),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            decorationBox = { innerTextField ->
+                if (query.isBlank()) {
+                    Text(
+                        text = "Search Movies",
+                        color = white.copy(alpha = 0.7f),
+                        fontSize = 16.sp
+                    )
+                }
+                innerTextField()
+            }
         )
         Image(
             painter = painterResource(R.drawable.microphone),
@@ -392,7 +427,14 @@ private fun SectionTitle(
 }
 
 @Composable
-private fun MovieList(items: List<Film>, loading: Boolean, onMovieClick: (Film) -> Unit) {
+private fun MovieList(
+    items: List<Film>,
+    loading: Boolean,
+    emptyText: String,
+    onMovieClick: (Film) -> Unit
+) {
+    val white = colorResource(R.color.white)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -401,6 +443,14 @@ private fun MovieList(items: List<Film>, loading: Boolean, onMovieClick: (Film) 
     ) {
         if (loading) {
             CircularProgressIndicator()
+            return
+        }
+
+        if (items.isEmpty()) {
+            Text(
+                text = emptyText,
+                color = white
+            )
             return
         }
 
@@ -484,3 +534,14 @@ private data class NavItem(
     val iconRes: Int,
     val title: String
 )
+
+private fun filterMovies(items: List<Film>, query: String): List<Film> {
+    val normalizedQuery = query.trim()
+    if (normalizedQuery.isEmpty()) {
+        return items
+    }
+
+    return items.filter { film ->
+        film.Title?.contains(normalizedQuery, ignoreCase = true) == true
+    }
+}
